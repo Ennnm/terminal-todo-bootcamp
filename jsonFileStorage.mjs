@@ -20,7 +20,7 @@ export function write(filename, jsonContentObj, callback) {
       callback(writeErr, null);
       return;
     }
-    console.log('Write success!');
+    // console.log('Write success!');
     // Call client-provided callback on successful write
     callback(null, jsonContentStr);
   });
@@ -112,4 +112,49 @@ export function add(filename, key, input, callback) {
     // Pass callback to edit to be called after edit completion
     callback,
   );
+}
+
+export function remove(filename, key, index, callback) {
+  edit(filename, (err, jsonContentObj) => {
+    if (err)
+    {
+      console.eror('remove error', err);
+      callback(err, null);
+    }
+    const refArr = jsonContentObj[key];
+    if (index - 1 < refArr.length && index >= 1)
+    {
+      const refItem = refArr.splice(index - 1, 1);
+      jsonContentObj[key] = refArr;
+      // success
+      callback(null, refItem);
+    }
+    else {
+      // fail
+      callback(null, '');
+    }
+  }, () => {});
+}
+
+export function replaceOneElement(filename, key, index, replacementTxt, callback) {
+  edit(filename, (err, jsonContentObj) => {
+    if (err)
+    {
+      console.eror('replacement error', err);
+      callback(err, ['', replacementTxt]);
+    }
+    const refArr = jsonContentObj[key];
+    const replacedElem = refArr[index - 1];
+    if (index - 1 < refArr.length && index >= 1)
+    {
+      refArr[index - 1] = replacementTxt;
+      jsonContentObj[key] = refArr;
+      // success
+      callback(null, [replacedElem, replacementTxt]);
+    }
+    else {
+      // fail
+      callback(null, ['', replacementTxt]);
+    }
+  }, () => {});
 }

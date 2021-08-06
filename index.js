@@ -1,6 +1,16 @@
 import {
-  read, write, edit, add,
+  replaceOneElement,
+  read, write, edit, add, remove,
 } from './jsonFileStorage.mjs';
+
+const command = process.argv[2];
+const optInput = process.argv[3];
+const optTxt = process.argv[4];
+const jsonFilePath = 'data.json';
+const startObj = {
+  todo: [],
+  done: [],
+};
 
 const logItems = (arr) =>
 {
@@ -19,14 +29,6 @@ const showHandler = (err, jsonObj) =>
   logItems(done);
 };
 
-const command = process.argv[2];
-const optInput = process.argv[3];
-
-const startObj = {
-  todo: [],
-  done: [],
-};
-
 const completeHandler = (err, jsonObj) =>
 {
   const { todo } = jsonObj;
@@ -42,24 +44,54 @@ const completeHandler = (err, jsonObj) =>
   jsonObj.done = done;
 };
 
+const removeHandler = (err, output) => {
+  if (output === null || output === '')
+  {
+    console.log(`Have failed to remove Item ${optInput}`);
+  }
+  else if (output !== '')
+  {
+    console.log(`I have removed Item ${optInput}, "${output}"`);
+  }
+};
+
+const replaceHandler = (err, contents) => {
+  if (err || contents[0] === '')
+  {
+    console.log(`failed to edit item ${optInput} to ${contents[1]}`);
+  }
+  else
+  {
+    console.log(`I have edited Item "${contents[0]}" with "${contents[1]}"`);
+  }
+};
+
 switch (command)
 {
   case 'reset':
-    write('data.json', startObj, () => { console.log('list reset'); });
+    write(jsonFilePath, startObj, () => { console.log('list reset'); });
     break;
 
   case 'show':
-    read('data.json', showHandler);
+    read(jsonFilePath, showHandler);
     break;
 
   case 'add':
-    add('data.json', 'todo', optInput, () => {
+    add(jsonFilePath, 'todo', optInput, () => {
       console.log(`I have added "${optInput}" to your to-do list.`);
     });
     break;
-  case 'complete':
-    edit('data.json', completeHandler, () => { read('data.json', showHandler); });
 
+  case 'complete':
+    edit(jsonFilePath, completeHandler, () => { read('data.json', showHandler); });
+    break;
+
+  case 'remove':
+    remove(jsonFilePath, 'todo', optInput, removeHandler);
+    break;
+
+  case 'edit':
+    replaceOneElement(jsonFilePath, 'todo', optInput, optTxt, replaceHandler);
     break;
 
   default:
